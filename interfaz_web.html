@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevPlus Software - Sistema de Gestión de Proyectos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --navy: #0f172a;
+      --navy-card: #1e293b;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --success: #16a34a;
+      --success-light: #dcfce7;
+      --warning: #d97706;
+      --warning-light: #fef3c7;
+      --danger: #dc2626;
+      --danger-light: #fee2e2;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    header {
+      background: var(--navy);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #334155;
+    }
+
+    .brand h1 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.5px; }
+    .brand p { font-size: 0.8rem; color: #94a3b8; }
+    .badge-course {
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: #38bdf8;
+      font-size: 0.75rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      font-weight: 600;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 1.5rem auto;
+      padding: 0 1rem;
+    }
+
+    /* Tabs */
+    .tabs-nav {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      padding: 0.75rem 1.25rem;
+      border: none;
+      background: transparent;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--primary); }
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background: var(--primary-light);
+      border-radius: 6px 6px 0 0;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Cards */
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 1.5rem; }
+    
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .metric-card {
+      border-top: 4px solid var(--primary);
+    }
+    .metric-card.green { border-top-color: var(--success); }
+    .metric-card.purple { border-top-color: #8b5cf6; }
+    .metric-card.amber { border-top-color: var(--warning); }
+    .metric-title { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+    .metric-value { font-size: 1.75rem; font-weight: 700; color: var(--navy); margin-top: 0.25rem; }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      text-align: left;
+    }
+    th {
+      background: #f1f5f9;
+      padding: 0.75rem 1rem;
+      font-weight: 600;
+      color: var(--navy);
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    tr:hover td { background: #f8fafc; }
+
+    /* Status Badges */
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-pending { background: #f1f5f9; color: #475569; }
+    .badge-confirmed { background: var(--primary-light); color: var(--primary); }
+    .badge-in_progress { background: var(--warning-light); color: var(--warning); }
+    .badge-finished { background: var(--success-light); color: var(--success); }
+    .badge-canceled { background: var(--danger-light); color: var(--danger); }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-outline { background: white; border-color: var(--border); color: var(--text); }
+    .btn-outline:hover { background: #f1f5f9; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-sm { padding: 0.25rem 0.6rem; font-size: 0.78rem; }
+
+    /* Forms */
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--navy); }
+    .form-control {
+      width: 100%;
+      padding: 0.55rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-family: inherit;
+    }
+    .form-control:focus { outline: none; border-color: var(--primary); ring: 2px var(--primary-light); }
+
+    /* Special Result Box */
+    .terminal-box {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: 'Fira Code', monospace;
+      padding: 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      margin-top: 1rem;
+      white-space: pre-wrap;
+    }
+    .perfect-tag {
+      display: inline-block;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+    .perfect-yes { background: #166534; color: #4ade80; border: 1px solid #22c55e; }
+    .perfect-no { background: #991b1b; color: #fca5a5; border: 1px solid #ef4444; }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 1rem;
+    }
+    .modal.active { display: flex; }
+    .modal-box {
+      background: white;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 550px;
+      padding: 1.5rem;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+    }
+    .modal-title { font-weight: 700; font-size: 1.1rem; }
+    .close-btn { background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <h1>DevPlus Software</h1>
+      <p>Sistema de Gestión de Proyectos a la Medida • Arquitectura POO en Capas</p>
+    </div>
+    <div class="badge-course">Programación I • Uniquindío 2026</div>
+  </header>
+
+  <div class="container">
+
+    <nav class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+      <button class="tab-btn" onclick="switchTab('proyectos')">📁 Proyectos</button>
+      <button class="tab-btn" onclick="switchTab('clientes')">👥 Clientes</button>
+      <button class="tab-btn" onclick="switchTab('desarrolladores')">💻 Desarrolladores</button>
+      <button class="tab-btn" onclick="switchTab('servicios')">🧩 Servicios Adicionales</button>
+      <button class="tab-btn" onclick="switchTab('especiales')">⚡ Funcionalidades Especiales (RN7 / RN8)</button>
+    </nav>
+
+    <!-- TAB 1: DASHBOARD -->
+    <div id="tab-dashboard" class="tab-content active">
+      <div class="grid-4">
+        <div class="card metric-card">
+          <div class="metric-title">Proyectos Registrados</div>
+          <div class="metric-value" id="stat-proyectos">0</div>
+        </div>
+        <div class="card metric-card green">
+          <div class="metric-title">Clientes Registrados</div>
+          <div class="metric-value" id="stat-clientes">0</div>
+        </div>
+        <div class="card metric-card purple">
+          <div class="metric-title">Talento Humano</div>
+          <div class="metric-value" id="stat-devs">0</div>
+        </div>
+        <div class="card metric-card amber">
+          <div class="metric-title">Facturación Total</div>
+          <div class="metric-value" id="stat-ingresos">$0</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3 style="margin-bottom: 0.75rem; font-weight: 700;">🏢 Datos Corporativos de DevPlus</h3>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Empresa dedicada a la consultoría e implementación de soluciones informáticas de software a la medida para clientes nacionales e internacionales.
+          </p>
+          <div style="font-size: 0.85rem; line-height: 1.8;">
+            <div><strong>Razón Social:</strong> DevPlus Software Solutions S.A.S.</div>
+            <div><strong>NIT:</strong> 901.458.789-3</div>
+            <div><strong>Dirección:</strong> Carrera 15 # 12N-45, Armenia, Quindío</div>
+            <div><strong>Teléfono:</strong> (606) 749-0000</div>
+            <div><strong>Sitio Web:</strong> <a href="#" style="color: var(--primary);">https://www.devplus.co</a></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-bottom: 0.75rem; font-weight: 700;">⚖️ Reglas de Negocio Implementadas</h3>
+          <ul style="font-size: 0.85rem; padding-left: 1.25rem; line-height: 1.7; color: var(--text-muted);">
+            <li><strong>RN1 y RN2:</strong> Liquidación por días de desarrollo + servicios - 10% descuento por cliente frecuente (≥ 3 proyectos).</li>
+            <li><strong>RN3:</strong> Control de disponibilidad y solapamiento de fechas con límite de concurrencia simultánea.</li>
+            <li><strong>RN4 y RN5:</strong> Máquina de estados determinista (Pendiente → Confirmado → En curso → Finalizado).</li>
+            <li><strong>RN6:</strong> Contratación condicionada a disponibilidad de servicios adicionales.</li>
+            <li><strong>RN7:</strong> Algoritmo eficiente O(√N) para número perfecto sobre líneas telefónicas.</li>
+            <li><strong>RN8:</strong> Consolidación analítica de ingresos acumulados por fecha de solicitud.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: PROYECTOS -->
+    <div id="tab-proyectos" class="tab-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2 style="font-size: 1.2rem; font-weight: 700;">Gestión de Proyectos</h2>
+        <button class="btn btn-primary" onclick="openModal('modal-nuevo-proyecto')">➕ Nuevo Proyecto</button>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Cliente</th>
+              <th>Solicitud</th>
+              <th>Periodo (Días)</th>
+              <th>Estado</th>
+              <th>Método Pago</th>
+              <th>Devs / Srvs</th>
+              <th>Valor Total</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-proyectos-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 3: CLIENTES -->
+    <div id="tab-clientes" class="tab-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2 style="font-size: 1.2rem; font-weight: 700;">Directorio de Clientes</h2>
+        <button class="btn btn-primary" onclick="openModal('modal-nuevo-cliente')">➕ Registrar Cliente</button>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Documento / NIT</th>
+              <th>Nombre Completo / Razón Social</th>
+              <th>Teléfono</th>
+              <th>Correo Electrónico</th>
+              <th>País</th>
+              <th>Proyectos</th>
+              <th>Cliente Frecuente (RN1)</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-clientes-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 4: DESARROLLADORES -->
+    <div id="tab-desarrolladores" class="tab-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2 style="font-size: 1.2rem; font-weight: 700;">Planta de Desarrolladores</h2>
+        <button class="btn btn-primary" onclick="openModal('modal-nuevo-dev')">➕ Registrar Desarrollador</button>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Equipo de Trabajo</th>
+              <th>Nivel</th>
+              <th>Tarifa / Día</th>
+              <th>Máx. Simultáneos</th>
+              <th>Estado Operativo</th>
+              <th>Proyectos Asignados</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-devs-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 5: SERVICIOS ADICIONALES -->
+    <div id="tab-servicios" class="tab-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2 style="font-size: 1.2rem; font-weight: 700;">Catálogo de Servicios Adicionales</h2>
+        <button class="btn btn-primary" onclick="openModal('modal-nuevo-servicio')">➕ Registrar Servicio</button>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Nombre del Servicio</th>
+              <th>Precio Unitario</th>
+              <th>Disponibilidad (RN6)</th>
+              <th>Descripción</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-servicios-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 6: FUNCIONALIDADES ESPECIALES (RN7 y RN8) -->
+    <div id="tab-especiales" class="tab-content">
+      <div class="grid-2">
+        <!-- Subpanel RN7 -->
+        <div class="card">
+          <h3 style="font-weight: 700; color: var(--primary); margin-bottom: 0.5rem;">🔍 RN7: Número Perfecto sobre Teléfono</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Consulta un cliente a partir de su número de teléfono y determina si corresponde a un número perfecto utilizando un algoritmo eficiente <strong>O(√N)</strong>.
+          </p>
+
+          <div class="form-group">
+            <label>Número de Teléfono a Evaluar:</label>
+            <div style="display: flex; gap: 0.5rem;">
+              <input type="text" id="rn7-telefono" class="form-control" value="8589869056" placeholder="Ej: 8589869056">
+              <button class="btn btn-primary" onclick="verificarRN7()">Analizar</button>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+            <button class="btn btn-outline btn-sm" onclick="setTelefonoPrueba('8589869056')">Teléfono Semilla: 8589869056 (Perfecto)</button>
+            <button class="btn btn-outline btn-sm" onclick="setTelefonoPrueba('3154879201')">Teléfono Semilla: 3154879201 (No Perfecto)</button>
+          </div>
+
+          <div id="rn7-resultado" class="terminal-box">Presione 'Analizar' para ver el desglose matemático...</div>
+        </div>
+
+        <!-- Subpanel RN8 -->
+        <div class="card">
+          <h3 style="font-weight: 700; color: var(--success); margin-bottom: 0.5rem;">💰 RN8: Ingresos Acumulados por Fecha</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Filtra los proyectos cuya fecha de solicitud coincida con la fecha consultada y totaliza sus ingresos brutos.
+          </p>
+
+          <div class="form-group">
+            <label>Fecha de Solicitud (AAAA-MM-DD):</label>
+            <div style="display: flex; gap: 0.5rem;">
+              <input type="date" id="rn8-fecha" class="form-control" value="2026-09-24">
+              <button class="btn btn-success" onclick="calcularRN8()">Consultar</button>
+            </div>
+          </div>
+
+          <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; text-align: center; margin-bottom: 1rem;">
+            <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Total Acumulado en la Fecha</div>
+            <div id="rn8-total-monto" style="font-size: 2rem; font-weight: 800; color: var(--success); margin-top: 0.25rem;">$0,00 COP</div>
+          </div>
+
+          <div class="table-container" style="max-height: 200px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Cliente</th>
+                  <th>Estado</th>
+                  <th>Valor Total</th>
+                </tr>
+              </thead>
+              <tbody id="rn8-proyectos-body">
+                <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Sin consulta aún</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODAL: DETALLE DE LIQUIDACIÓN (RN1 y RN2) -->
+  <div id="modal-liquidacion" class="modal">
+    <div class="modal-box" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 class="modal-title">💵 Detalle de Liquidación Financiera (RN1 y RN2)</h3>
+        <button class="close-btn" onclick="closeModal('modal-liquidacion')">&times;</button>
+      </div>
+      <div id="modal-liquidacion-body" class="terminal-box" style="margin-top: 0; background: #1e293b; max-height: 400px; overflow-y: auto;"></div>
+      <div style="text-align: right; margin-top: 1rem;">
+        <button class="btn btn-primary" onclick="closeModal('modal-liquidacion')">Entendido</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ASIGNAR DESARROLLADOR -->
+  <div id="modal-asignar-dev" class="modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">👨‍💻 Asignar Desarrollador a Proyecto (RN3)</h3>
+        <button class="close-btn" onclick="closeModal('modal-asignar-dev')">&times;</button>
+      </div>
+      <input type="hidden" id="asig-cod-proyecto">
+      <div class="form-group">
+        <label>Proyecto Seleccionado:</label>
+        <div id="asig-label-proyecto" style="font-weight: 600; color: var(--primary);"></div>
+      </div>
+      <div class="form-group">
+        <label>Desarrollador a Asignar:</label>
+        <select id="asig-select-dev" class="form-control"></select>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+        <button class="btn btn-outline" onclick="closeModal('modal-asignar-dev')">Cancelar</button>
+        <button class="btn btn-primary" onclick="confirmarAsignarDev()">Asignar Desarrollador</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: AGREGAR SERVICIO -->
+  <div id="modal-agregar-srv" class="modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">🛠️ Agregar Servicio Adicional (RN6)</h3>
+        <button class="close-btn" onclick="closeModal('modal-agregar-srv')">&times;</button>
+      </div>
+      <input type="hidden" id="srv-cod-proyecto">
+      <div class="form-group">
+        <label>Proyecto Seleccionado:</label>
+        <div id="srv-label-proyecto" style="font-weight: 600; color: var(--primary);"></div>
+      </div>
+      <div class="form-group">
+        <label>Servicio Adicional:</label>
+        <select id="srv-select-servicio" class="form-control"></select>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+        <button class="btn btn-outline" onclick="closeModal('modal-agregar-srv')">Cancelar</button>
+        <button class="btn btn-primary" onclick="confirmarAgregarServicio()">Asociar Servicio</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NUEVO PROYECTO -->
+  <div id="modal-nuevo-proyecto" class="modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">➕ Crear Nuevo Proyecto</h3>
+        <button class="close-btn" onclick="closeModal('modal-nuevo-proyecto')">&times;</button>
+      </div>
+      <div class="form-group">
+        <label>Código del Proyecto:</label>
+        <input type="text" id="np-cod" class="form-control" value="PRJ-2026-03">
+      </div>
+      <div class="form-group">
+        <label>Cliente Contratante:</label>
+        <select id="np-cliente" class="form-control"></select>
+      </div>
+      <div class="grid-2" style="gap: 0.5rem; margin-bottom: 0.5rem;">
+        <div class="form-group">
+          <label>Fecha Solicitud:</label>
+          <input type="date" id="np-solicitud" class="form-control" value="2026-09-24">
+        </div>
+        <div class="form-group">
+          <label>Método de Pago:</label>
+          <select id="np-pago" class="form-control">
+            <option value="TARJETA_CREDITO">Tarjeta de Crédito</option>
+            <option value="TRANSFERENCIA_BANCARIA">Transferencia Bancaria</option>
+            <option value="EFECTIVO">Efectivo</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid-2" style="gap: 0.5rem;">
+        <div class="form-group">
+          <label>Fecha de Inicio:</label>
+          <input type="date" id="np-inicio" class="form-control" value="2026-09-28">
+        </div>
+        <div class="form-group">
+          <label>Fecha de Entrega:</label>
+          <input type="date" id="np-entrega" class="form-control" value="2026-10-18">
+        </div>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+        <button class="btn btn-outline" onclick="closeModal('modal-nuevo-proyecto')">Cancelar</button>
+        <button class="btn btn-primary" onclick="guardarNuevoProyecto()">Crear Proyecto</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // MODELO DE DATOS EN MEMORIA (IDÉNTICO AL BACKEND JAVA)
+    // =========================================================================
+
+    const clientes = [
+      { id: "NIT-900111222", nombre: "Tech Global Corporation", tel: "8589869056", email: "gerencia@techglobal.com", pais: "Colombia", proyectos: ["PRJ-001", "PRJ-002", "PRJ-2026-01"] },
+      { id: "CC-1094857211", nombre: "Alejandro Mejía Ríos", tel: "3154879201", email: "alejandro.mejia@gmail.com", pais: "Colombia", proyectos: ["PRJ-2026-02"] },
+      { id: "TAX-8849201", nombre: "Andes Logistics Inc.", tel: "6", email: "it@andeslogistics.com", pais: "Chile", proyectos: [] }
+    ];
+
+    const desarrolladores = [
+      { cod: "DEV-01", equipo: "Backend Core", nivel: "SENIOR", tarifa: 180000, max: 2, estado: "ASIGNADO", proyectos: ["PRJ-2026-01"] },
+      { cod: "DEV-02", equipo: "Frontend Web", nivel: "SEMISENIOR", tarifa: 130000, max: 2, estado: "ASIGNADO", proyectos: ["PRJ-2026-01"] },
+      { cod: "DEV-03", equipo: "Mobile Apps", nivel: "JUNIOR", tarifa: 85000, max: 1, estado: "ASIGNADO", proyectos: ["PRJ-2026-02"] },
+      { cod: "DEV-04", equipo: "Cloud Ops", nivel: "SENIOR", tarifa: 200000, max: 2, estado: "EN_CAPACITACION", proyectos: [] }
+    ];
+
+    const servicios = [
+      { cod: "SRV-01", nombre: "Soporte Técnico 24/7", precio: 1500000, disponible: true, desc: "Mantenimiento continuo y soporte SLA 99.9%" },
+      { cod: "SRV-02", nombre: "Capacitación de Usuarios", precio: 800000, disponible: true, desc: "Talleres presenciales y virtuales guiados" },
+      { cod: "SRV-03", nombre: "Despliegue Cloud AWS", precio: 2200000, disponible: true, desc: "Infraestructura como código y balanceadores" },
+      { cod: "SRV-04", nombre: "Migración de Datos Legacy", precio: 1900000, disponible: false, desc: "Extracción, transformación y carga (ETL)" }
+    ];
+
+    const proyectos = [
+      {
+        cod: "PRJ-001", clienteId: "NIT-900111222", fSol: "2026-07-26", fIni: "2026-08-05", fEnt: "2026-09-04",
+        estado: "FINALIZADO", metodo: "TRANSFERENCIA_BANCARIA", devs: [], srvs: [], valorTotal: 4500000
+      },
+      {
+        cod: "PRJ-002", clienteId: "NIT-900111222", fSol: "2026-08-15", fIni: "2026-08-25", fEnt: "2026-09-14",
+        estado: "FINALIZADO", metodo: "TARJETA_CREDITO", devs: [], srvs: [], valorTotal: 3200000
+      },
+      {
+        cod: "PRJ-2026-01", clienteId: "NIT-900111222", fSol: "2026-09-24", fIni: "2026-09-29", fEnt: "2026-10-19",
+        estado: "CONFIRMADO", metodo: "TRANSFERENCIA_BANCARIA", devs: ["DEV-01", "DEV-02"], srvs: ["SRV-01"], valorTotal: 6930000
+      },
+      {
+        cod: "PRJ-2026-02", clienteId: "CC-1094857211", fSol: "2026-09-24", fIni: "2026-10-04", fEnt: "2026-10-14",
+        estado: "PENDIENTE", metodo: "EFECTIVO", devs: ["DEV-03"], srvs: ["SRV-02"], valorTotal: 1650000
+      }
+    ];
+
+    // =========================================================================
+    // REGLAS DE NEGOCIO (RN1 a RN8)
+    // =========================================================================
+
+    function esClienteFrecuente(clienteId) {
+      const c = clientes.find(x => x.id === clienteId);
+      return c && c.proyectos.length >= 3;
+    }
+
+    function calcularDias(fIni, fEnt) {
+      const d1 = new Date(fIni);
+      const d2 = new Date(fEnt);
+      const diff = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24));
+      return diff <= 0 ? 1 : diff;
+    }
+
+    function recalcularProyecto(p) {
+      const dias = calcularDias(p.fIni, p.fEnt);
+      let sumaTarifas = 0;
+      p.devs.forEach(cd => {
+        const d = desarrolladores.find(x => x.cod === cd);
+        if (d) sumaTarifas += d.tarifa;
+      });
+      const costoDevs = sumaTarifas * dias;
+
+      let costoSrvs = 0;
+      p.srvs.forEach(cs => {
+        const s = servicios.find(x => x.cod === cs);
+        if (s) costoSrvs += s.precio;
+      });
+
+      const bruto = costoDevs + costoSrvs;
+      const frecuente = esClienteFrecuente(p.clienteId);
+      const descuento = frecuente ? bruto * 0.10 : 0;
+      p.valorTotal = bruto - descuento;
+      return { dias, sumaTarifas, costoDevs, costoSrvs, bruto, frecuente, descuento, total: p.valorTotal };
+    }
+
+    // RN7: Algoritmo O(sqrt(N))
+    function esNumeroPerfecto(n) {
+      if (n <= 1) return false;
+      let suma = 1;
+      const limite = Math.floor(Math.sqrt(n));
+      for (let i = 2; i <= limite; i++) {
+        if (n % i === 0) {
+          suma += i;
+          const pareja = n / i;
+          if (pareja !== i) suma += pareja;
+        }
+      }
+      return suma === n;
+    }
+
+    // =========================================================================
+    // RENDERIZADO Y CONTROLADORES
+    // =========================================================================
+
+    function formatMoney(num) {
+      return "$" + Number(num).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " COP";
+    }
+
+    function renderAll() {
+      // 1. Dashboard stats
+      let totalFacturado = 0;
+      proyectos.forEach(p => totalFacturado += p.valorTotal);
+      document.getElementById('stat-proyectos').innerText = proyectos.length;
+      document.getElementById('stat-clientes').innerText = clientes.length;
+      document.getElementById('stat-devs').innerText = desarrolladores.length;
+      document.getElementById('stat-ingresos').innerText = formatMoney(totalFacturado);
+
+      // 2. Tabla Proyectos
+      const tbProy = document.getElementById('tabla-proyectos-body');
+      tbProy.innerHTML = "";
+      proyectos.forEach(p => {
+        const c = clientes.find(x => x.id === p.clienteId);
+        const dias = calcularDias(p.fIni, p.fEnt);
+        const badgeClass = `badge-${p.estado.toLowerCase()}`;
+        tbProy.innerHTML += `
+          <tr>
+            <td><strong>${p.cod}</strong></td>
+            <td>${c ? c.nombre : p.clienteId}</td>
+            <td>${p.fSol}</td>
+            <td>${p.fIni} / ${p.fEnt} (${dias} d)</td>
+            <td><span class="badge ${badgeClass}">${p.estado}</span></td>
+            <td>${p.metodo}</td>
+            <td>${p.devs.length} devs / ${p.srvs.length} srvs</td>
+            <td><strong>${formatMoney(p.valorTotal)}</strong></td>
+            <td>
+              <div style="display: flex; gap: 0.3rem; flex-wrap: wrap;">
+                <button class="btn btn-outline btn-sm" onclick="verLiquidacion('${p.cod}')">💵 Liquidar</button>
+                <button class="btn btn-outline btn-sm" onclick="abrirAsignarDev('${p.cod}')">👨‍💻 Dev</button>
+                <button class="btn btn-outline btn-sm" onclick="abrirAgregarSrv('${p.cod}')">🛠️ Srv</button>
+                ${p.estado === 'PENDIENTE' ? `<button class="btn btn-success btn-sm" onclick="confirmarProyecto('${p.cod}')">Confirmar</button>` : ''}
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      // 3. Tabla Clientes
+      const tbCli = document.getElementById('tabla-clientes-body');
+      tbCli.innerHTML = "";
+      clientes.forEach(c => {
+        const freq = esClienteFrecuente(c.id);
+        tbCli.innerHTML += `
+          <tr>
+            <td><strong>${c.id}</strong></td>
+            <td>${c.nombre}</td>
+            <td>${c.tel}</td>
+            <td>${c.email}</td>
+            <td>${c.pais}</td>
+            <td>${c.proyectos.length} proyectos</td>
+            <td><span class="badge ${freq ? 'badge-finished' : 'badge-pending'}">${freq ? 'SÍ (10% Descuento)' : 'NO'}</span></td>
+          </tr>
+        `;
+      });
+
+      // 4. Tabla Desarrolladores
+      const tbDev = document.getElementById('tabla-devs-body');
+      tbDev.innerHTML = "";
+      desarrolladores.forEach(d => {
+        let badgeColor = 'badge-confirmed';
+        if (d.estado === 'EN_CAPACITACION') badgeColor = 'badge-pending';
+        if (d.estado === 'OCUPADO') badgeColor = 'badge-canceled';
+        if (d.estado === 'DISPONIBLE') badgeColor = 'badge-finished';
+
+        tbDev.innerHTML += `
+          <tr>
+            <td><strong>${d.cod}</strong></td>
+            <td>${d.equipo}</td>
+            <td>${d.nivel}</td>
+            <td>${formatMoney(d.tarifa)}</td>
+            <td>${d.max} simultáneo(s)</td>
+            <td><span class="badge ${badgeColor}">${d.estado}</span></td>
+            <td>${d.proyectos.join(", ") || "(Ninguno)"}</td>
+          </tr>
+        `;
+      });
+
+      // 5. Tabla Servicios
+      const tbSrv = document.getElementById('tabla-servicios-body');
+      tbSrv.innerHTML = "";
+      servicios.forEach(s => {
+        tbSrv.innerHTML += `
+          <tr>
+            <td><strong>${s.cod}</strong></td>
+            <td>${s.nombre}</td>
+            <td>${formatMoney(s.precio)}</td>
+            <td><span class="badge ${s.disponible ? 'badge-finished' : 'badge-canceled'}">${s.disponible ? 'DISPONIBLE' : 'INACTIVO'}</span></td>
+            <td>${s.desc}</td>
+            <td>
+              <button class="btn btn-outline btn-sm" onclick="toggleServicio('${s.cod}')">
+                ${s.disponible ? 'Desactivar' : 'Activar'}
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('tab-' + tabId).classList.add('active');
+    }
+
+    function openModal(id) {
+      // Poblar selects si aplica
+      if (id === 'modal-nuevo-proyecto') {
+        const sel = document.getElementById('np-cliente');
+        sel.innerHTML = "";
+        clientes.forEach(c => sel.innerHTML += `<option value="${c.id}">${c.id} - ${c.nombre}</option>`);
+      }
+      document.getElementById(id).classList.add('active');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    // Modal Liquidar
+    function verLiquidacion(cod) {
+      const p = proyectos.find(x => x.cod === cod);
+      if (!p) return;
+      const c = clientes.find(x => x.id === p.clienteId);
+      const res = recalcularProyecto(p);
+
+      let txt = `===========================================================\n`;
+      txt += `         DETALLE DE LIQUIDACIÓN FINANCIERA (RN1 y RN2)      \n`;
+      txt += `===========================================================\n`;
+      txt += `Proyecto: ${p.cod} | Estado: ${p.estado}\n`;
+      txt += `Cliente: ${c.nombre} (${c.id})\n`;
+      txt += `Condición: ${res.frecuente ? 'CLIENTE FRECUENTE (>=3 Proyectos) -> APLICA DESCUENTO 10%' : 'CLIENTE ESTÁNDAR (Sin descuento)'}\n\n`;
+      txt += `Periodo: ${p.fIni} hasta ${p.fEnt} (${res.dias} días de desarrollo)\n\n`;
+      txt += `Desarrolladores Asignados:\n`;
+      p.devs.forEach(cd => {
+        const d = desarrolladores.find(x => x.cod === cd);
+        txt += `  • ${d.cod} (${d.nivel}) -> Tarifa: ${formatMoney(d.tarifa)}/día\n`;
+      });
+      txt += `Subtotal Equipo (${res.dias} días * ${formatMoney(res.sumaTarifas)}/día): ${formatMoney(res.costoDevs)}\n\n`;
+      txt += `Servicios Adicionales Contratados:\n`;
+      p.srvs.forEach(cs => {
+        const s = servicios.find(x => x.cod === cs);
+        txt += `  • ${s.nombre}: ${formatMoney(s.precio)}\n`;
+      });
+      txt += `Subtotal Servicios: ${formatMoney(res.costoSrvs)}\n\n`;
+      txt += `-----------------------------------------------------------\n`;
+      txt += `SUBTOTAL BRUTO:               ${formatMoney(res.bruto)}\n`;
+      txt += `DESCUENTO FRECUENTE (10%):   -${formatMoney(res.descuento)}\n`;
+      txt += `VALOR TOTAL NETO A PAGAR:     ${formatMoney(res.total)}\n`;
+      txt += `===========================================================`;
+
+      document.getElementById('modal-liquidacion-body').innerText = txt;
+      openModal('modal-liquidacion');
+    }
+
+    function abrirAsignarDev(cod) {
+      document.getElementById('asig-cod-proyecto').value = cod;
+      document.getElementById('asig-label-proyecto').innerText = cod;
+      const sel = document.getElementById('asig-select-dev');
+      sel.innerHTML = "";
+      desarrolladores.forEach(d => {
+        sel.innerHTML += `<option value="${d.cod}">${d.cod} - ${d.equipo} (${d.estado}) [Máx: ${d.max}]</option>`;
+      });
+      openModal('modal-asignar-dev');
+    }
+
+    function confirmarAsignarDev() {
+      const codProy = document.getElementById('asig-cod-proyecto').value;
+      const codDev = document.getElementById('asig-select-dev').value;
+      const p = proyectos.find(x => x.cod === codProy);
+      const d = desarrolladores.find(x => x.cod === codDev);
+
+      // RN3 validaciones
+      if (d.estado === 'EN_CAPACITACION') {
+        alert("ERROR RN3: El desarrollador está EN CAPACITACIÓN y no puede ser asignado.");
+        return;
+      }
+      if (d.proyectos.length >= d.max) {
+        alert(`ERROR RN3: El desarrollador ${d.cod} excede su capacidad máxima simultánea (${d.max} proyectos).`);
+        return;
+      }
+      if (p.devs.includes(codDev)) {
+        alert("El desarrollador ya está asignado a este proyecto.");
+        return;
+      }
+
+      p.devs.push(codDev);
+      d.proyectos.push(codProy);
+      if (d.proyectos.length >= d.max) d.estado = 'OCUPADO';
+      else d.estado = 'ASIGNADO';
+
+      recalcularProyecto(p);
+      closeModal('modal-asignar-dev');
+      renderAll();
+      alert(`Desarrollador ${codDev} asignado con éxito.`);
+    }
+
+    function abrirAgregarSrv(cod) {
+      document.getElementById('srv-cod-proyecto').value = cod;
+      document.getElementById('srv-label-proyecto').innerText = cod;
+      const sel = document.getElementById('srv-select-servicio');
+      sel.innerHTML = "";
+      servicios.forEach(s => {
+        sel.innerHTML += `<option value="${s.cod}">${s.cod} - ${s.nombre} (${formatMoney(s.precio)}) [${s.disponible ? 'DISPONIBLE' : 'INACTIVO'}]</option>`;
+      });
+      openModal('modal-agregar-srv');
+    }
+
+    function confirmarAgregarServicio() {
+      const codProy = document.getElementById('srv-cod-proyecto').value;
+      const codSrv = document.getElementById('srv-select-servicio').value;
+      const p = proyectos.find(x => x.cod === codProy);
+      const s = servicios.find(x => x.cod === codSrv);
+
+      // RN6 validación
+      if (!s.disponible) {
+        alert(`ERROR RN6: El servicio adicional '${s.nombre}' NO está disponible para contratación.`);
+        return;
+      }
+      if (p.srvs.includes(codSrv)) {
+        alert("El servicio ya fue contratado en este proyecto.");
+        return;
+      }
+
+      p.srvs.push(codSrv);
+      recalcularProyecto(p);
+      closeModal('modal-agregar-srv');
+      renderAll();
+      alert(`Servicio ${s.nombre} agregado exitosamente.`);
+    }
+
+    function confirmarProyecto(cod) {
+      const p = proyectos.find(x => x.cod === cod);
+      if (p.devs.length === 0) {
+        alert("No se puede confirmar un proyecto sin desarrolladores asignados.");
+        return;
+      }
+      p.estado = 'CONFIRMADO';
+      recalcularProyecto(p);
+      renderAll();
+      alert(`Proyecto ${cod} CONFIRMADO. Se actualizó la disponibilidad del equipo.`);
+    }
+
+    function toggleServicio(cod) {
+      const s = servicios.find(x => x.cod === cod);
+      if (s) {
+        s.disponible = !s.disponible;
+        renderAll();
+      }
+    }
+
+    function guardarNuevoProyecto() {
+      const cod = document.getElementById('np-cod').value.trim();
+      const cli = document.getElementById('np-cliente').value;
+      const fSol = document.getElementById('np-solicitud').value;
+      const fIni = document.getElementById('np-inicio').value;
+      const fEnt = document.getElementById('np-entrega').value;
+      const metodo = document.getElementById('np-pago').value;
+
+      if (!cod || !fSol || !fIni || !fEnt) {
+        alert("Todos los campos son obligatorios.");
+        return;
+      }
+      if (fIni > fEnt) {
+        alert("La fecha de entrega debe ser posterior a la de inicio.");
+        return;
+      }
+
+      const nuevo = {
+        cod, clienteId: cli, fSol, fIni, fEnt,
+        estado: 'PENDIENTE', metodo, devs: [], srvs: [], valorTotal: 0
+      };
+      proyectos.push(nuevo);
+      const c = clientes.find(x => x.id === cli);
+      if (c) c.proyectos.push(cod);
+
+      closeModal('modal-nuevo-proyecto');
+      renderAll();
+      alert(`Proyecto ${cod} creado con éxito.`);
+    }
+
+    // RN7
+    function verificarRN7() {
+      const tel = document.getElementById('rn7-telefono').value.trim();
+      const cleanDigits = tel.replace(/\D/g, '');
+      if (!cleanDigits) {
+        alert("Ingrese un número válido.");
+        return;
+      }
+      const numLong = parseInt(cleanDigits, 10);
+      const c = clientes.find(x => x.tel.replace(/\D/g, '') === cleanDigits);
+
+      const t0 = performance.now();
+      const esPerf = esNumeroPerfecto(numLong);
+      const t1 = performance.now();
+      const ms = (t1 - t0).toFixed(4);
+
+      let out = `====================================================\n`;
+      out += `           EVALUACIÓN DE NÚMERO PERFECTO (RN7)       \n`;
+      out += `====================================================\n`;
+      if (c) {
+        out += `Cliente Registrado:\n`;
+        out += `  • ID/NIT: ${c.id}\n`;
+        out += `  • Nombre: ${c.nombre}\n`;
+        out += `  • País: ${c.pais}\n\n`;
+      } else {
+        out += `(Nota: Número no vinculado a clientes registrados)\n\n`;
+      }
+      out += `Análisis Matemático O(√N):\n`;
+      out += `  • Valor numérico procesado: ${numLong}\n`;
+      out += `  • Tiempo de cómputo en CPU: ${ms} ms\n\n`;
+      out += `DICTAMEN:\n`;
+      out += esPerf ? `  >>> ¡EL TELÉFONO ES UN NÚMERO PERFECTO! <<<\n  (La suma de sus divisores propios es exactamente igual al número).`
+                    : `  >>> EL TELÉFONO NO ES UN NÚMERO PERFECTO <<<`;
+
+      document.getElementById('rn7-resultado').innerText = out;
+    }
+
+    function setTelefonoPrueba(tel) {
+      document.getElementById('rn7-telefono').value = tel;
+      verificarRN7();
+    }
+
+    // RN8
+    function calcularRN8() {
+      const fecha = document.getElementById('rn8-fecha').value;
+      if (!fecha) return;
+
+      let total = 0;
+      const tb = document.getElementById('rn8-proyectos-body');
+      tb.innerHTML = "";
+
+      proyectos.forEach(p => {
+        if (p.fSol === fecha && p.estado !== 'CANCELADO') {
+          total += p.valorTotal;
+          const c = clientes.find(x => x.id === p.clienteId);
+          tb.innerHTML += `
+            <tr>
+              <td><strong>${p.cod}</strong></td>
+              <td>${c ? c.nombre : p.clienteId}</td>
+              <td><span class="badge badge-${p.estado.toLowerCase()}">${p.estado}</span></td>
+              <td>${formatMoney(p.valorTotal)}</td>
+            </tr>
+          `;
+        }
+      });
+
+      if (tb.innerHTML === "") {
+        tb.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">(No se registraron proyectos solicitados en esta fecha)</td></tr>`;
+      }
+
+      document.getElementById('rn8-total-monto').innerText = formatMoney(total);
+    }
+
+    // Inicializar
+    renderAll();
+    calcularRN8();
+  </script>
+</body>
+</html>

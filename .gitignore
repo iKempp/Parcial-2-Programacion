@@ -1,0 +1,16 @@
+target/
+*.class
+lib/*.jar
+DevPlus.jar
+
+# Entornos de desarrollo
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Sistema operativo
+Thumbs.db
+.DS_Store
