@@ -1,214 +1,318 @@
-# DevPlus - Sistema de Gestión de Proyectos de Software
-**Curso:** Programación I  
-**Facultad de Ingeniería - Programa de Ingeniería de Sistemas y Computación**  
-**Universidad del Quindío**  
-**Fecha:** 24 de septiembre del 2026  
+# Sistema de Gestión de Alquiler de Equipos Audiovisuales - PixelRent
+
+**Asignatura:** Programación I  
+**Institución:** Universidad del Quindío  
+**Proyecto:** PixelRent - Gestión de Alquiler Audiovisual  
 
 ---
 
-## 1. Pensamiento Computacional
+## 1. Desarrollo del Pensamiento Computacional (0.5 pts)
 
 ### Abstracción
-* **¿Qué se solicita finalmente? (Problema):**  
-  Construir una solución de software orientada a objetos para la empresa "DevPlus", permitiendo la administración integral de clientes, talentos de desarrollo, servicios adicionales y proyectos contratados. El sistema debe garantizar la no existencia de conflictos en agendas de desarrollo, liquidar valores con descuentos de fidelidad, gestionar transiciones de estado del proyecto y proveer dos analíticas avanzadas: evaluación de números perfectos sobre líneas telefónicas y acumulación de ingresos por fecha de solicitud.
+* **¿Qué se solicita finalmente? (problema):**  
+  Desarrollar un sistema de información orientado a objetos para la empresa **PixelRent**, que permita administrar de forma consistente y centralizada el alquiler de equipos audiovisuales (cámaras, drones y kits de iluminación) distribuidos en sedes, gestionando clientes, operadores técnicos y el ciclo de vida de las reservas (solicitada, confirmada, cancelada, finalizada), garantizando la no duplicidad de códigos, la prevención de colisiones en fechas/turnos, la asignación obligatoria de operadores para drones y el cálculo preciso de costos.
 
 * **¿Qué información es relevante dado el problema anterior?:**  
-  * *Empresa:* Nombre comercial, NIT, dirección, teléfono, página web y sus 4 registros maestros.
-  * *Cliente:* Identificación/NIT, nombre o razón social, teléfono, correo, país y su historial de proyectos contratados.
-  * *Desarrollador:* Código, equipo, nivel (Junior, Semisenior, Senior), capacidad máxima de concurrencia, tarifa diaria, estado y proyectos asignados.
-  * *Proyecto:* Código, fechas (solicitud, inicio, entrega), estado del ciclo de vida, método de pago, valor liquidado, cliente contratante, equipo asignado y servicios complementarios.
-  * *ServicioAdicional:* Código, nombre, descripción, precio y disponibilidad.
+  * **Sedes:** código, nombre, dirección y equipos asignados.
+  * **Equipos Audiovisuales:** código único, marca, modelo, condición operativa (`DISPONIBLE`, `EN_MANTENIMIENTO`, `FUERA_DE_SERVICIO`).
+    * *Cámaras:* resolución máxima y si poseen estabilizador (tarifa: $12.000/h + $15.000 con estabilizador).
+    * *Drones:* autonomía de vuelo en minutos y si disponen de batería adicional (tarifa: $18.000/h + $20.000 con batería adicional; requiere operador asignado para confirmarse).
+    * *Kits de iluminación:* cantidad de luces y si disponen de control inalámbrico (tarifa: $10.000/h + $12.000 con control inalámbrico).
+  * **Clientes:** número de identificación, nombre completo, teléfono y correo electrónico. Dicha información es inmutable tras el registro.
+  * **Operadores:** número de identificación, nombre completo, certificación técnica y años de experiencia.
+  * **Reservas:** código único, cliente titular, fecha de uso, turno (`MANANA`, `TARDE`, `NOCHE`) —ambos inmutables una vez creados—, estado del ciclo de vida (`SOLICITADA`, `CONFIRMADA`, `CANCELADA`, `FINALIZADA`), operador asignado (máximo uno por reserva) y conjunto de equipos con sus respectivas horas de utilización.
 
 * **¿Cómo se agrupa la información relevante?:**  
-  Se agrupa mediante clases modelo fuertemente cohesivas (`Empresa`, `Cliente`, `Desarrollador`, `Proyecto`, `ServicioAdicional`) y enumeraciones para tipificación estricta de estados y categorías (`EstadoProyecto`, `MetodoPago`, `NivelDesarrollador`, `EstadoDesarrollador`).
+  * En una jerarquía polimórfica para equipos: clase abstracta `EquipoAudiovisual` y clases especializadas `Camara`, `Dron` y `KitIluminacion`.
+  * En entidades de dominio: `Sede`, `Cliente`, `Operador`, `Reserva`, `DetalleReserva` y la clase contenedora del negocio `PixelRent`.
+  * En enumeraciones con tipado seguro: `CondicionEquipo`, `Turno` y `EstadoReserva`.
 
 * **¿Qué funcionalidades se solicitan finalmente?:**  
-  1. CRUD y consultas sobre clientes, desarrolladores, servicios y proyectos.
-  2. Validación de disponibilidad y solapamiento de fechas con límite de simultaneidad (RN3).
-  3. Liquidación automática del valor total con días y descuento por cliente frecuente (RN1 y RN2).
-  4. Confirmación de proyectos con reactualización de disponibilidad de desarrolladores (RN4).
-  5. Control estricto de transiciones de estado de proyectos (RN5).
-  6. Asociación exclusiva de servicios disponibles (RN6).
-  7. Consulta de cliente por teléfono y verificación matemática de Número Perfecto en $O(\sqrt{N})$ (RN7).
-  8. Consolidación de ingresos por fecha de solicitud (RN8).
+  1. Registrar nuevos equipos, clientes, operadores, sedes y reservas (iniciando en estado `SOLICITADA`).
+  2. Agregar equipos a una reserva (con su cantidad de horas), validando que estén disponibles y sin duplicados en la misma reserva.
+  3. Asignar un operador especializado a una reserva.
+  4. Confirmar reservas validando que: posea al menos un equipo, los equipos no estén asignados en otra reserva confirmada para la misma fecha y turno, si hay drones tenga operador asignado, y no proceda de cancelada o finalizada.
+  5. Cambiar el estado de la reserva respetando el flujo de estados de negocio.
+  6. Consultar los equipos disponibles para una fecha y turno determinados.
+  7. Consultar las reservas confirmadas de un cliente por su número de identificación.
+  8. Obtener el valor total y desglose de una reserva específica.
 
 ### Descomposición
 * **¿Cómo se distribuyen las funcionalidades?:**  
-  Se aplica una arquitectura en capas con responsabilidades desacopladas:
-  * `model`: Datos y comportamientos intrínsecos de las entidades.
-  * `service`: Fachada de negocio (`DevPlusService`) que encapsula las 8 reglas de negocio.
-  * `exception`: Clases de error para situaciones anómalas del dominio.
-  * `util`: Módulos de soporte técnico (`ConsolaUtil` y `ValidadorUtil`).
-  * `app`: Interfaz por consola (`Main`) sin lógica de negocio.
-* **¿Qué debo hacer para probar las funcionalidades?:**  
-  * Ejecutar la suite de pruebas automatizadas con JUnit 5 (`DevPlusServiceTest`).
-  * Realizar la demostración guiada a través del menú interactivo en consola probando casos exitosos y casos de error controlado.
+  * **Capa de Modelo (`model`):** Encapsula el estado, las invariantes de datos y el cálculo del costo individual (`calcularCostoUtilizacion`) y total de la reserva (`calcularValorTotal`).
+  * **Capa de Excepciones (`exception`):** Gestiona anomalías de negocio (`ElementoDuplicadoException`, `ElementoNoEncontradoException`, `ReglaNegocioException`, `TransicionEstadoInvalidaException`).
+  * **Capa de Servicios (`service`):** `PixelRentService` actúa como fachada y orquestador central, coordinando la validación cruzada entre reservas, la verificación de disponibilidad por fecha/turno y el cumplimiento de reglas antes de transiciones de estado.
+  * **Capa de Presentación / Aplicación (`app` y `util`):** `Main` provee el menú interactivo de consola, `ConsolaUtil` valida las entradas del usuario y `DatosPruebaUtil` precarga información representativa para pruebas inmediatas.
 
 ### Reconocimiento de Patrones
-* **Patrón de Interval Scheduling (Solapamiento Temporal):** Comprobación matemática de cruce de rangos: dos proyectos chocan si no ocurre que uno termine antes que empiece el otro.
-* **Patrón Algorítmico de Divisores Simétricos:** Cálculo de divisores propios en $O(\sqrt{N})$ para procesar números grandes (como teléfonos de 10 dígitos) en milisegundos.
-* **Patrón Fachada (Facade):** `DevPlusService` expone una interfaz limpia y simplificada para la vista.
-* **Patrón Máquina de Estados Finita:** Control determinista del ciclo de vida del proyecto.
+* **¿Qué puedo reutilizar de la solución de otros problemas?:**  
+  * **Herencia y Polimorfismo:** Método abstracto `calcularCostoUtilizacion(int horas)` en `EquipoAudiovisual`, permitiendo calcular el subtotal de cada ítem de reserva sin verificar tipos mediante `if/switch`.
+  * **Entidad Intermedia / Ítem Detalle:** Clase `DetalleReserva` para resolver la relación muchos a muchos con atributos propios (horas de uso de cada equipo en la reserva).
+  * **Máquina de Estados Finita:** Control de ciclo de vida en `EstadoReserva` con validaciones de transición.
+  * **Fachada (Facade Service):** Centralizar la lógica y validaciones en `PixelRentService`.
+  * **Inmutabilidad:** Atributos `final` y omisión de setters en `Cliente` y en la combinación `fecha`/`turno` de `Reserva`.
 
 ### Codificación
-* **¿Cómo pruebo la solución en Java?:**  
-  A través de pruebas unitarias parametrizadas en JUnit 5 y ejecución interactiva mediante `Main.java` o el script `ejecutar.bat`.
 * **¿Cómo escribo la solución en Java?:**  
-  En Java 17 LTS, con encapsulamiento estricto (`private` con getters/setters), colecciones `ArrayList`, inmutabilidad controlada (`Collections.unmodifiableList`), API `java.time` (`LocalDate`, `ChronoUnit.DAYS`), y manejo explícito de excepciones personalizadas.
+  * Uso de Java 17 estándar con POO pura, encapsulamiento estricto (`private`, getters y setters controlados), colecciones seguras (`List`, `Collections.unmodifiableList`), Streams para búsquedas y filtros limpios, y manejo estructurado de excepciones comprobadas.
 
 ---
 
-## 2. Diagrama de Clases UML
+## 2. Diagrama de Clases (1.5 pts)
 
-### PlantUML
-```plantuml
-@startuml
-skinparam classAttributeIconSize 0
+```mermaid
+classDiagram
+    direction TB
 
-package "co.edu.uniquindio.devplus.model" {
-    enum EstadoProyecto { PENDIENTE, CONFIRMADO, EN_CURSO, FINALIZADO, CANCELADO }
-    enum MetodoPago { TARJETA_CREDITO, TRANSFERENCIA_BANCARIA, EFECTIVO }
-    enum NivelDesarrollador { JUNIOR, SEMISENIOR, SENIOR }
-    enum EstadoDesarrollador { DISPONIBLE, ASIGNADO, OCUPADO, EN_CAPACITACION }
+    class PixelRent {
+        -String nombre
+        -List~Sede~ sedes
+        -List~EquipoAudiovisual~ equipos
+        -List~Cliente~ clientes
+        -List~Operador~ operadores
+        -List~Reserva~ reservas
+        +buscarSedePorCodigo(String codigo) Sede
+        +buscarEquipoPorCodigo(String codigo) EquipoAudiovisual
+        +buscarClientePorIdentificacion(String id) Cliente
+        +buscarOperadorPorIdentificacion(String id) Operador
+        +buscarReservaPorCodigo(String codigo) Reserva
+        +agregarSede(Sede sede) void
+        +agregarEquipo(EquipoAudiovisual equipo) void
+        +agregarCliente(Cliente cliente) void
+        +agregarOperador(Operador operador) void
+        +agregarReserva(Reserva reserva) void
+    }
 
-    class Empresa {
-        - String nombreComercial
-        - String nit
-        - String direccion
-        - String telefono
-        - String paginaWeb
-        - List<Cliente> clientes
-        - List<Desarrollador> desarrolladores
-        - List<Proyecto> proyectos
-        - List<ServicioAdicional> serviciosAdicionales
+    class Sede {
+        -String codigo
+        -String nombre
+        -String direccion
+        -List~EquipoAudiovisual~ equiposAsignados
+        +asignarEquipo(EquipoAudiovisual equipo) void
+        +removerEquipo(EquipoAudiovisual equipo) void
+    }
+
+    class CondicionEquipo {
+        <<enumeration>>
+        DISPONIBLE
+        EN_MANTENIMIENTO
+        FUERA_DE_SERVICIO
+        -String descripcion
+        +getDescripcion() String
+    }
+
+    class Turno {
+        <<enumeration>>
+        MANANA
+        TARDE
+        NOCHE
+        -String descripcion
+        +getDescripcion() String
+    }
+
+    class EstadoReserva {
+        <<enumeration>>
+        SOLICITADA
+        CONFIRMADA
+        CANCELADA
+        FINALIZADA
+        -String descripcion
+        +getDescripcion() String
+    }
+
+    class EquipoAudiovisual {
+        <<abstract>>
+        -String codigo
+        -String marca
+        -String modelo
+        -CondicionEquipo condicion
+        -Sede sede
+        +estaDisponible() boolean
+        +calcularCostoUtilizacion(int horas)* double
+        +getTipoEquipo()* String
+    }
+
+    class Camara {
+        -String resolucionMaxima
+        -boolean tieneEstabilizador
+        +calcularCostoUtilizacion(int horas) double
+        +getTipoEquipo() String
+    }
+
+    class Dron {
+        -int autonomiaVueloMinutos
+        -boolean tieneBateriaAdicional
+        +calcularCostoUtilizacion(int horas) double
+        +getTipoEquipo() String
+    }
+
+    class KitIluminacion {
+        -int cantidadLuces
+        -boolean tieneControlInalambrico
+        +calcularCostoUtilizacion(int horas) double
+        +getTipoEquipo() String
     }
 
     class Cliente {
-        - String identificacion
-        - String nombreCompleto
-        - String telefono
-        - String correoElectronico
-        - String paisProcedencia
-        - List<Proyecto> proyectosContratados
-        + esClienteFrecuente(): boolean
-        + agregarProyecto(Proyecto): void
+        -String identificacion
+        -String nombreCompleto
+        -String telefono
+        -String correoElectronico
+        +getIdentificacion() String
+        +getNombreCompleto() String
+        +getTelefono() String
+        +getCorreoElectronico() String
     }
 
-    class Desarrollador {
-        - String codigo
-        - String equipoDeTrabajo
-        - NivelDesarrollador nivel
-        - int cantidadMaximaProyectosSimultaneos
-        - double tarifaPorDia
-        - EstadoDesarrollador estado
-        - List<Proyecto> proyectosAsignados
-        + contarProyectosEnRango(LocalDate, LocalDate): int
-        + tieneCapacidadEnFechas(LocalDate, LocalDate): boolean
-        + actualizarEstadoSegunCarga(): void
+    class Operador {
+        -String identificacion
+        -String nombreCompleto
+        -String certificacion
+        -int aniosExperiencia
+        +getIdentificacion() String
+        +getNombreCompleto() String
+        +getCertificacion() String
+        +getAniosExperiencia() int
     }
 
-    class ServicioAdicional {
-        - String codigo
-        - String nombre
-        - String descripcion
-        - double precio
-        - boolean disponible
+    class DetalleReserva {
+        -EquipoAudiovisual equipo
+        -int horasUtilizacion
+        +calcularSubtotal() double
+        +getEquipo() EquipoAudiovisual
+        +getHorasUtilizacion() int
     }
 
-    class Proyecto {
-        - String codigo
-        - LocalDate fechaSolicitud
-        - LocalDate fechaInicio
-        - LocalDate fechaEntrega
-        - EstadoProyecto estado
-        - MetodoPago metodoPago
-        - double valorTotal
-        - Cliente contratante
-        - List<Desarrollador> desarrolladoresAsignados
-        - List<ServicioAdicional> serviciosUtilizados
-        + calcularDiasDesarrollo(): long
-        + recalcularValorTotal(): double
+    class Reserva {
+        -String codigo
+        -Cliente cliente
+        -LocalDate fecha
+        -Turno turno
+        -EstadoReserva estado
+        -Operador operador
+        -List~DetalleReserva~ detalles
+        +agregarEquipo(EquipoAudiovisual equipo, int horas) void
+        +asignarOperador(Operador operador) void
+        +calcularValorTotal() double
+        +contieneDron() boolean
+        +contieneEquipo(String codigoEquipo) boolean
     }
-}
 
-package "co.edu.uniquindio.devplus.service" {
-    class DevPlusService {
-        - Empresa empresa
-        + crearProyecto(...)
-        + asignarDesarrolladorAProyecto(String, String)
-        + asociarServicioAProyecto(String, String)
-        + confirmarProyecto(String)
-        + cambiarEstadoProyecto(String, EstadoProyecto)
-        + verificarTelefonoClienteNumeroPerfecto(String): boolean
-        + calcularIngresosPorFecha(LocalDate): double
+    class PixelRentService {
+        -PixelRent empresa
+        +registrarSede(Sede sede) void
+        +registrarEquipo(EquipoAudiovisual equipo, String codigoSede) void
+        +registrarCliente(Cliente cliente) void
+        +registrarOperador(Operador operador) void
+        +registrarReserva(String codigo, String idCliente, LocalDate fecha, Turno turno) Reserva
+        +agregarEquipoAReserva(String codigoReserva, String codigoEquipo, int horas) void
+        +asignarOperadorAReserva(String codigoReserva, String idOperador) void
+        +confirmarReserva(String codigoReserva) void
+        +cancelarReserva(String codigoReserva) void
+        +finalizarReserva(String codigoReserva) void
+        +cambiarEstadoReserva(String codigoReserva, EstadoReserva nuevoEstado) void
+        +consultarEquiposDisponibles(LocalDate fecha, Turno turno) List~EquipoAudiovisual~
+        +consultarReservasConfirmadasPorCliente(String idCliente) List~Reserva~
+        +obtenerValorTotalReserva(String codigoReserva) double
     }
-}
 
-Empresa "1" *-- "0..*" Cliente : administra
-Empresa "1" *-- "0..*" Desarrollador : gestiona
-Empresa "1" *-- "0..*" Proyecto : supervisa
-Empresa "1" *-- "0..*" ServicioAdicional : oferta
-Cliente "1" o-- "0..*" Proyecto : proyectosContratados
-Proyecto "0..*" o-- "1..*" Desarrollador : desarrolladoresAsignados
-Proyecto "0..*" o-- "0..*" ServicioAdicional : serviciosUtilizados
-DevPlusService --> Empresa : opera
-@enduml
+    %% Relaciones de herencia
+    EquipoAudiovisual <|-- Camara : Herencia
+    EquipoAudiovisual <|-- Dron : Herencia
+    EquipoAudiovisual <|-- KitIluminacion : Herencia
+
+    %% Relaciones de composición / agregación
+    PixelRent *-- Sede : 1..* sedes
+    PixelRent *-- EquipoAudiovisual : 0..* equipos
+    PixelRent *-- Cliente : 0..* clientes
+    PixelRent *-- Operador : 0..* operadores
+    PixelRent *-- Reserva : 0..* reservas
+
+    Sede o-- EquipoAudiovisual : 0..* equiposAsignados
+    EquipoAudiovisual --> CondicionEquipo : 1 condicion
+
+    Reserva --> Cliente : 1 titular
+    Reserva --> Operador : 0..1 operadorAsignado
+    Reserva --> Turno : 1 turno
+    Reserva --> EstadoReserva : 1 estado
+    Reserva *-- DetalleReserva : 1..* detalles
+    DetalleReserva --> EquipoAudiovisual : 1 equipo
+
+    PixelRentService --> PixelRent : orquesta
 ```
 
+### Relaciones, Roles y Multiplicidades del Dominio:
+1. **`EquipoAudiovisual <|-- Camara, Dron, KitIluminacion` (Generalización / Herencia):**  
+   Permite el tratamiento uniforme de los equipos y la resolución polimórfica del costo horario con recargos específicos.
+2. **`Sede 1` a `0..* EquipoAudiovisual` (Agregación):**  
+   Cada sede administra diferentes equipos asignados para prestar sus servicios.
+3. **`Cliente 1` a `0..* Reserva` (Asociación):**  
+   Un mismo cliente puede utilizar los servicios de la empresa en diferentes ocasiones y realizar varias reservas a lo largo del tiempo.
+4. **`Operador 0..1` a `0..* Reserva` (Asociación):**  
+   Un operador puede participar en diferentes reservas, pero en una reserva determinada solamente puede existir a lo sumo un operador asignado.
+5. **`Reserva 1` a `1..* DetalleReserva` (Composición):**  
+   Una reserva contiene uno o varios detalles que registran el equipo y las horas particulares durante las cuales será utilizado. El detalle no tiene sentido sin su reserva.
+6. **`DetalleReserva` a `EquipoAudiovisual 1` (Asociación):**  
+   Cada detalle referencia exactamente al equipo utilizado. Un mismo equipo no puede repetirse en los detalles de una misma reserva.
+
 ---
 
-## 3. Instrucciones de Compilación y Ejecución
+## 3. Implementación en Java (2.0 pts)
 
-### Opción 1: Ejecutar la Interfaz Gráfica (GUI Swing)
-* **Doble clic en `ejecutar_gui.bat`** en la raíz del proyecto.
-* O por consola:
-  ```bash
-  java -cp target/classes co.edu.uniquindio.devplus.gui.VentanaPrincipal
+La solución fue implementada en el paquete `co.edu.uniquindio.pixelrent` organizada en 5 paquetes:
+
+* **`co.edu.uniquindio.pixelrent.model`**:
+  * `CondicionEquipo`, `Turno`, `EstadoReserva`
+  * `Sede`, `Cliente`, `Operador`
+  * `EquipoAudiovisual` (abstracta), `Camara`, `Dron`, `KitIluminacion`
+  * `DetalleReserva`, `Reserva`, `PixelRent`
+* **`co.edu.uniquindio.pixelrent.exception`**:
+  * `PixelRentException` (base)
+  * `ElementoDuplicadoException`
+  * `ElementoNoEncontradoException`
+  * `ReglaNegocioException`
+  * `TransicionEstadoInvalidaException`
+* **`co.edu.uniquindio.pixelrent.service`**:
+  * `PixelRentService`: Fachada del negocio y orquestador con todas las validaciones del parcial.
+* **`co.edu.uniquindio.pixelrent.util`**:
+  * `ConsolaUtil`: Métodos para lectura validada de consola.
+  * `DatosPruebaUtil`: Semilla de datos para pruebas inmediatas.
+* **`co.edu.uniquindio.pixelrent.app`**:
+  * `Main`: Menú interactivo de consola.
+
+### Reglas de Negocio Implementadas Estrictamente:
+1. **Unicidad de Códigos:** No se permite registrar dos equipos con el mismo código ni dos reservas con el mismo código (`ElementoDuplicadoException`).
+2. **Inmutabilidad del Cliente:** Los datos registrados del cliente no admiten mutación posterior (campos `final`, sin setters).
+3. **Inmutabilidad de Fecha y Turno de la Reserva:** Una vez creada la reserva, su fecha y turno son definitivos (campos `final`).
+4. **Equipos en Condiciones de Uso:** Solo se pueden agregar a la reserva equipos con condición `DISPONIBLE`.
+5. **No Duplicidad de Equipo por Reserva:** Un equipo no puede agregarse más de una vez a la misma reserva.
+6. **Reglas para Confirmar Reserva:**
+   * Contener al menos un equipo.
+   * Ningún equipo puede estar asignado en otra reserva confirmada para la misma fecha y turno.
+   * Si incluye un dron (`instanceof Dron`), es requisito obligatorio tener un operador asignado.
+   * No se permite confirmar una reserva que provenga del estado cancelada o finalizada.
+7. **Cálculo de Costos:**
+   * Cámara: $12.000 * horas + ($15.000 con estabilizador).
+   * Dron: $18.000 * horas + ($20.000 con batería adicional).
+   * Kit de iluminación: $10.000 * horas + ($12.000 con control inalámbrico).
+
+---
+
+## 4. Demostración de Funcionalidades (1.0 pts)
+
+Se incluye una batería completa de pruebas unitarias automatizadas con **JUnit 5** (`PixelRentServiceTest`) con 14 casos de prueba cubriendo el 100% de las reglas exigidas.
+
+### Cómo Ejecutar la Aplicación:
+* **Opción A (Script Windows):**
+  Hacer doble clic en `ejecutar.bat` o ejecutarlo desde la terminal:
+  ```cmd
+  .\ejecutar.bat
   ```
-
-### Opción 2: Ejecutar la Aplicación de Consola (CLI interactivo)
-* **Doble clic en `ejecutar.bat`** en la raíz del proyecto.
-* O por consola:
-  ```bash
-  java -jar DevPlus.jar
+* **Opción B (Directamente el JAR):**
+  ```cmd
+  java -jar PixelRent.jar
   ```
-  *(Nota: Desde el menú de consola, la opción `13` también permite abrir la Interfaz Gráfica).*
-
-### Opción 3: Ejecución de Pruebas Unitarias Automatizadas (JUnit 5)
-```bash
-java -jar lib/junit-platform-console-standalone-1.10.2.jar --class-path "target/classes;target/test-classes" --scan-class-path
-```
-
----
-
-## 4. Guion de Sustentación en Video (~10 Minutos)
-
-* **Formato:** Video en YouTube con audio, pantalla compartida y cámara web activa de ambos integrantes.
-
-| Tiempo | Integrante | Tema a Explicar | Contenido Clave |
-| :--- | :--- | :--- | :--- |
-| **00:00 - 02:00** | **Integrante 1** | Introducción y Pensamiento Computacional | Explicar Abstracción (qué pide DevPlus, datos relevantes, clases), Descomposición (capas model, service, exception, util, app), y Reconocimiento de Patrones (interval scheduling y algoritmo $O(\sqrt{N})$ para número perfecto). |
-| **02:00 - 04:00** | **Integrante 2** | Diagrama de Clases UML | Explicar las 5 entidades, los 4 enums, la justificación de Composición de la Empresa, la Agregación de Cliente a Proyecto, y la relación de asignación con Desarrolladores y Servicios Adicionales. Roles y multiplicidades. |
-| **04:00 - 06:30** | **Integrante 1** | Arquitectura y Código Fuente (Service y Modelo) | Mostrar la clase `DevPlusService.java` y `Desarrollador.java`: explicar el método de detección de solapamiento de fechas `tieneCapacidadEnFechas()`, la liquidación con 10% de descuento frecuente (`recalcularValorTotal()`), y la máquina de estados. |
-| **06:30 - 08:30** | **Integrante 2** | Demostración Práctica en Consola (Demo) | Ejecutar la aplicación en vivo: Probar la Opción 10 con el teléfono `8589869056` (demostrar que es número perfecto) y `3154879201` (no perfecto). Probar la Opción 11 con ingresos del `2026-09-24`. Probar la Opción 7 mostrando la liquidación detallada con el 10% de descuento. |
-| **08:30 - 10:00** | **Ambos** | Pruebas Unitarias, Control de Versiones y Conclusiones | Ejecutar las 18 pruebas de JUnit 5 en verde. Mostrar el historial de commits en GitHub con la participación equitativa de ambos y dar cierre profesional. |
-
----
-
-## 5. Plan de Commits para Trabajo Colaborativo en Git
-
-Para evidenciar la autoría de ambos estudiantes mediante commits identificables:
-
-* **Estudiante 1 (Arquitectura Base, Modelo y Excepciones):**
-  1. `docs: configuracion inicial del proyecto, pom.xml y documentacion de pensamiento computacional`
-  2. `feat(model): creacion de enums (EstadoProyecto, MetodoPago, NivelDesarrollador, EstadoDesarrollador)`
-  3. `feat(model): implementacion de entidades Cliente, Desarrollador y ServicioAdicional con encapsulamiento`
-  4. `feat(exception): definicion de excepciones de dominio (DesarrolladorNoDisponible, ServicioNoDisponible, TransicionInvalida)`
-  5. `feat(service): implementacion de DevPlusService con validaciones RN1, RN2 y solapamiento de fechas RN3`
-
-* **Estudiante 2 (Lógica Matemática, Utilidades, UI Consola y Pruebas):**
-  6. `feat(util): implementacion de ConsolaUtil para lectura robusta y ValidadorUtil con algoritmo O(sqrt(N))`
-  7. `feat(service): implementacion de funcionalidades especiales RN7 (numero perfecto) y RN8 (ingresos por fecha)`
-  8. `feat(app): implementacion de Main con menu interactivo y precarga de datos semilla (seed data)`
-  9. `test(service): implementacion de suite de pruebas unitarias JUnit 5 para RN1, RN2, RN3, RN6, RN7 y RN8`
-  10. `docs: creacion de guia de ejecucion, casos de prueba para sustentacion y diagramas UML finales`
+* **Opción C (Ejecutar suite de pruebas JUnit):**
+  ```cmd
+  java -jar lib/junit-platform-console-standalone-1.10.2.jar execute --class-path "target/classes;target/test-classes" --scan-class-path
+  ```

@@ -6,11 +6,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>co.edu.uniquindio</groupId>
-    <artifactId>devplus-sistema</artifactId>
+    <artifactId>pixelrent-sistema</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>DevPlus - Sistema de Gestion de Proyectos de Software</name>
+    <name>PixelRent - Sistema de Gestion de Alquiler de Equipos Audiovisuales</name>
     <description>Proyecto academico de Programacion I - Universidad del Quindio</description>
 
     <properties>
@@ -72,7 +72,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>co.edu.uniquindio.devplus.app.Main</mainClass>
+                            <mainClass>co.edu.uniquindio.pixelrent.app.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
