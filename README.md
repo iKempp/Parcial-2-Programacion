@@ -300,7 +300,7 @@ La solución fue implementada en el paquete `co.edu.uniquindio.pixelrent` organi
 
 ## 4. Demostración de Funcionalidades (1.0 pts)
 
-Se incluye una batería completa de pruebas unitarias automatizadas con **JUnit 5** (`PixelRentServiceTest`) con 14 casos de prueba cubriendo el 100% de las reglas exigidas.
+La aplicación cuenta con un menú interactivo en consola y datos de prueba precargados para evidenciar el funcionamiento de todas las funcionalidades solicitadas:
 
 ### Cómo Ejecutar la Aplicación:
 * **Opción A (Script Windows):**
@@ -311,8 +311,4 @@ Se incluye una batería completa de pruebas unitarias automatizadas con **JUnit 
 * **Opción B (Directamente el JAR):**
   ```cmd
   java -jar PixelRent.jar
-  ```
-* **Opción C (Ejecutar suite de pruebas JUnit):**
-  ```cmd
-  java -jar lib/junit-platform-console-standalone-1.10.2.jar execute --class-path "target/classes;target/test-classes" --scan-class-path
   ```

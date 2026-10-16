@@ -1,7 +1,5 @@
 target/
 *.class
-lib/*.jar
-DevPlus.jar
 
 # Entornos de desarrollo
 .idea/
