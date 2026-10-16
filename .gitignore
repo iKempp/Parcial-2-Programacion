@@ -1,6 +1,10 @@
 target/
 *.class
 
+# Documentacion y diagramas excluidos
+README.md
+*.drawio
+
 # Entornos de desarrollo
 .idea/
 *.iml
