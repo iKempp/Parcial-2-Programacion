@@ -8,24 +8,27 @@ echo                  PROGRAMACION I - UQ
 echo ======================================================================
 echo.
 
-REM Intentar ejecutar desde target/classes o compilar si no existe
-if not exist "target\classes\co\edu\uniquindio\pixelrent\app\Main.class" (
-    echo [*] Compilando codigo fuente con javac...
-    if not exist "target\classes" mkdir target\classes
-    javac -encoding UTF-8 -d target\classes src\main\java\co\edu\uniquindio\pixelrent\model\*.java src\main\java\co\edu\uniquindio\pixelrent\exception\*.java src\main\java\co\edu\uniquindio\pixelrent\service\*.java src\main\java\co\edu\uniquindio\pixelrent\util\*.java src\main\java\co\edu\uniquindio\pixelrent\app\*.java
+REM Si no existe el archivo JAR ejecutable, compilarlo automaticamente
+if not exist "PixelRent.jar" (
+    echo [*] Compilando codigo fuente y empaquetando PixelRent.jar...
+    if not exist "target\classes" mkdir "target\classes"
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "javac -encoding UTF-8 -d target/classes (Get-ChildItem -Recurse -Filter *.java src/main/java).FullName; if ($LASTEXITCODE -eq 0) { jar --create --file PixelRent.jar --main-class co.edu.uniquindio.pixelrent.app.Main -C target/classes . }"
     if %errorlevel% neq 0 (
         echo [!] Error de compilacion.
         pause
         exit /b %errorlevel%
     )
-    echo [+] Compilacion exitosa.
+    echo [+] Compilacion y empaquetado exitoso.
     echo.
 )
 
-java -cp "target\classes" co.edu.uniquindio.pixelrent.app.Main
+REM Ejecutar la aplicacion
+java -jar PixelRent.jar
 if %errorlevel% neq 0 (
     echo.
     echo [!] Si 'java' no esta en el PATH del sistema, intentando con Temurin 17...
-    "C:\Program Files\Eclipse Adoptium\jdk-17.0.20.101-hotspot\bin\java.exe" -cp "target\classes" co.edu.uniquindio.pixelrent.app.Main
+    "C:\Program Files\Eclipse Adoptium\jdk-17.0.20.101-hotspot\bin\java.exe" -jar PixelRent.jar
 )
+
+echo.
 pause
