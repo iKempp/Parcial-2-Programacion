@@ -4,7 +4,6 @@ import co.edu.uniquindio.pixelrent.exception.PixelRentException;
 import co.edu.uniquindio.pixelrent.model.*;
 import co.edu.uniquindio.pixelrent.service.PixelRentService;
 import co.edu.uniquindio.pixelrent.util.ConsolaUtil;
-import co.edu.uniquindio.pixelrent.util.DatosPruebaUtil;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -12,7 +11,8 @@ import java.util.Scanner;
 
 /**
  * Punto de entrada principal y Vista de Consola (CLI) interactiva de PixelRent.
- * Permite probar y evidenciar todas las funcionalidades requeridas en el parcial.
+ * Permite probar y evidenciar todas las funcionalidades requeridas en el parcial,
+ * iniciando con el sistema limpio y vacio para registrar todo manualmente.
  */
 public class Main {
 
@@ -24,29 +24,27 @@ public class Main {
         PixelRent empresa = new PixelRent("PixelRent S.A.S.");
         service = new PixelRentService(empresa);
 
-        // Precargar datos de prueba
-        DatosPruebaUtil.cargarDatosPrueba(service);
-
         int opcion;
         do {
             mostrarMenuPrincipal();
-            opcion = ConsolaUtil.leerEntero(scanner, ">> Seleccione una opcion [0-12]: ", 0, 12);
+            opcion = ConsolaUtil.leerEntero(scanner, ">> Seleccione una opcion [0-13]: ", 0, 13);
             System.out.println();
 
             try {
                 switch (opcion) {
-                    case 1 -> registrarNuevoEquipo();
-                    case 2 -> registrarNuevoCliente();
-                    case 3 -> registrarNuevoOperador();
-                    case 4 -> registrarNuevaReserva();
-                    case 5 -> agregarEquipoAReserva();
-                    case 6 -> asignarOperadorAReserva();
-                    case 7 -> confirmarReserva();
-                    case 8 -> cambiarEstadoReserva();
-                    case 9 -> consultarEquiposDisponibles();
-                    case 10 -> consultarReservasConfirmadasCliente();
-                    case 11 -> consultarValorTotalReserva();
-                    case 12 -> listarInventarioGeneral();
+                    case 1 -> registrarNuevaSede();
+                    case 2 -> registrarNuevoEquipo();
+                    case 3 -> registrarNuevoCliente();
+                    case 4 -> registrarNuevoOperador();
+                    case 5 -> registrarNuevaReserva();
+                    case 6 -> agregarEquipoAReserva();
+                    case 7 -> asignarOperadorAReserva();
+                    case 8 -> confirmarReserva();
+                    case 9 -> cambiarEstadoReserva();
+                    case 10 -> consultarEquiposDisponibles();
+                    case 11 -> consultarReservasConfirmadasCliente();
+                    case 12 -> consultarValorTotalReserva();
+                    case 13 -> listarInventarioGeneral();
                     case 0 -> System.out.println(">> ¡Gracias por utilizar el Sistema de Gestion PixelRent! Hasta pronto.");
                 }
             } catch (PixelRentException e) {
@@ -67,18 +65,19 @@ public class Main {
         System.out.println("\n=======================================================================");
         System.out.println("          PIXELRENT - SISTEMA DE GESTION DE ALQUILER AUDIOVISUAL       ");
         System.out.println("=======================================================================");
-        System.out.println(" 1. Registrar nuevo Equipo (Camara, Dron o Kit de Iluminacion)");
-        System.out.println(" 2. Registrar nuevo Cliente");
-        System.out.println(" 3. Registrar nuevo Operador especializado");
-        System.out.println(" 4. Registrar nueva Reserva (Inicia en SOLICITADA)");
-        System.out.println(" 5. Agregar Equipo a una Reserva");
-        System.out.println(" 6. Asignar Operador a una Reserva");
-        System.out.println(" 7. Confirmar Reserva (Verifica equipos, disponibilidad y operador)");
-        System.out.println(" 8. Cambiar estado de una Reserva (Transiciones controladas)");
-        System.out.println(" 9. Consultar Equipos disponibles para una Fecha y Turno determinados");
-        System.out.println(" 10. Consultar Reservas CONFIRMADAS por Identificacion de Cliente");
-        System.out.println(" 11. Consultar Valor Total y Detalle de una Reserva especifica");
-        System.out.println(" 12. Listar inventario general (Sedes, Equipos, Clientes, Operadores)");
+        System.out.println(" 1. Registrar nueva Sede");
+        System.out.println(" 2. Registrar nuevo Equipo (Camara, Dron o Kit de Iluminacion)");
+        System.out.println(" 3. Registrar nuevo Cliente");
+        System.out.println(" 4. Registrar nuevo Operador especializado");
+        System.out.println(" 5. Registrar nueva Reserva (Inicia en SOLICITADA)");
+        System.out.println(" 6. Agregar Equipo a una Reserva");
+        System.out.println(" 7. Asignar Operador a una Reserva");
+        System.out.println(" 8. Confirmar Reserva (Verifica equipos, disponibilidad y operador)");
+        System.out.println(" 9. Cambiar estado de una Reserva (Transiciones controladas)");
+        System.out.println(" 10. Consultar Equipos disponibles para una Fecha y Turno determinados");
+        System.out.println(" 11. Consultar Reservas CONFIRMADAS por Identificacion de Cliente");
+        System.out.println(" 12. Consultar Valor Total y Detalle de una Reserva especifica");
+        System.out.println(" 13. Listar inventario general (Sedes, Equipos, Clientes, Operadores, Reservas)");
         System.out.println(" 0. Salir de la aplicacion");
         System.out.println("=======================================================================");
     }
@@ -86,6 +85,18 @@ public class Main {
     // =========================================================================
     // CASOS DE USO DEL MENU
     // =========================================================================
+
+    private static void registrarNuevaSede() throws PixelRentException {
+        System.out.println(">> REGISTRO DE NUEVA SEDE");
+        String codigo = ConsolaUtil.leerCadenaNoVacia(scanner, "Codigo unico de la sede (ej: SED-01): ");
+        String nombre = ConsolaUtil.leerCadenaNoVacia(scanner, "Nombre de la sede: ");
+        String direccion = ConsolaUtil.leerCadenaNoVacia(scanner, "Direccion de la sede: ");
+
+        Sede sede = new Sede(codigo, nombre, direccion);
+        service.registrarSede(sede);
+        System.out.println("\n  [+] ¡Sede registrada con exito!");
+        System.out.println("      " + sede);
+    }
 
     private static void registrarNuevoEquipo() throws PixelRentException {
         System.out.println(">> REGISTRO DE NUEVO EQUIPO AUDIOVISUAL");
@@ -109,7 +120,7 @@ public class Main {
             default -> CondicionEquipo.FUERA_DE_SERVICIO;
         };
 
-        System.out.print("Codigo de sede asignada (vacio para no asignar sede): ");
+        System.out.print("Codigo de sede asignada (dejar vacio si no desea asignar sede): ");
         String codigoSede = scanner.nextLine().trim();
 
         EquipoAudiovisual nuevoEquipo;
@@ -327,18 +338,23 @@ public class Main {
         System.out.println("================================================================================");
 
         System.out.println("\n--- SEDES REGISTRADAS (" + empresa.getSedes().size() + ") ---");
+        if (empresa.getSedes().isEmpty()) System.out.println("  (No hay sedes registradas)");
         empresa.getSedes().forEach(s -> System.out.println("  * " + s));
 
         System.out.println("\n--- CLIENTES REGISTRADOS (" + empresa.getClientes().size() + ") ---");
+        if (empresa.getClientes().isEmpty()) System.out.println("  (No hay clientes registrados)");
         empresa.getClientes().forEach(c -> System.out.println("  * " + c));
 
         System.out.println("\n--- OPERADORES ESPECIALIZADOS (" + empresa.getOperadores().size() + ") ---");
+        if (empresa.getOperadores().isEmpty()) System.out.println("  (No hay operadores registrados)");
         empresa.getOperadores().forEach(o -> System.out.println("  * " + o));
 
         System.out.println("\n--- EQUIPOS AUDIOVISUALES (" + empresa.getEquipos().size() + ") ---");
+        if (empresa.getEquipos().isEmpty()) System.out.println("  (No hay equipos registrados)");
         empresa.getEquipos().forEach(e -> System.out.println("  * " + e));
 
         System.out.println("\n--- RESERVAS REGISTRADAS (" + empresa.getReservas().size() + ") ---");
+        if (empresa.getReservas().isEmpty()) System.out.println("  (No hay reservas registradas)");
         empresa.getReservas().forEach(r -> System.out.println("  * " + r));
         System.out.println("================================================================================");
     }
